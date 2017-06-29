@@ -1,0 +1,26 @@
+{
+  "name": "beabys/paybook-bundle",
+  "description": "bundle to interact with paybook",
+  "homepage": "https://github.com/beabys/paybook-bundle",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alfonso Rodriguez",
+      "email": "beabys@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.6",
+    "symfony/symfony": "3.2.*",
+    "paybook/paybook": "dev-master"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.8"
+  },
+  "autoload": {
+    "psr-0": {
+      "beabys\\PaybookBundle": ""
+    }
+  },
+  "target-dir": "beabys/PaybookBundle"
+}

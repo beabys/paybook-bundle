@@ -22,7 +22,6 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->scalarNode('paybook_id_user')->isRequired()->end()
                 ->scalarNode('paybook_api_key')->isRequired()->end()
             ->end()
         ;

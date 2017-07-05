@@ -1,4 +1,3 @@
 parameters:
   beabys_paybook:
-    paybook_id_user:
     paybook_api_key:

@@ -5,10 +5,12 @@ namespace beabys\PaybookBundle\Controller;
 use beabys\PaybookBundle\Traits\Instance;
 use paybook\Paybook;
 use paybook\Attachment;
+use paybook\Transaction;
 use paybook\User;
 use paybook\Session;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Exception;
+
 /**
  * Class InvoicesController
  * @package beabys\PaybookBundle\Controller
@@ -19,26 +21,74 @@ class InvoicesController extends Controller
 
     use Instance;
 
-    public function getUsersInvoice($idUser, $startDate = null, $endDate = null)
+    const XML_ATTACHMENT_TYPE = '56bcdfca784806d1378b4567';
+
+    /**
+     * @param $email
+     * @param null $startDate
+     * @param null $endDate
+     * @param array $keywords
+     * @return array|bool
+     */
+    public function getUsersInvoice($email, $startDate = null, $endDate = null, $keywords = [])
     {
+
+        $files = [];
         Paybook::init($this->getApiKey());
-        //Create instance of existing user
-        $user = new User(null, $idUser);
-        //create session for user
-        $session = new Session($user);
-        $options = [
-            //'id_site_organization' => $SAT_SITE_ORGANIZATION,
-            'dt_transaction_from' => 1498780800, // 1ro de febrero
-            'dt_transaction_to' => 1498867200, // 1ro de marzo
-            'limit' => 1,
+        $userData = [
+            'name' => $email,
         ];
-        try {
-            $attachments = Attachment::get($session, null, null, null, $options);
-            //$attachments = Transaction::get($session, null, $options);
-            var_dump($attachments);
-        } catch (Exception $e) {
-            var_dump($e);
+        $user = User::get($userData);
+
+        if (empty($user)) {
+            return $files;
+        }
+        $user = $user[0];
+        $session = new Session($user);
+        date_default_timezone_set('America/Mexico_City');
+        $options = [
+            'limit' => 3,
+            'dt_transaction_from' => strtotime($startDate),
+            'dt_transaction_to' => strtotime($endDate),
+        ];
+        if (!empty($keywords)) {
+            $keywords = implode(',', $keywords);
+            $options['keywords'] = $keywords;
         }
 
+        $transactions = Transaction::get($session, null, $options);
+        try {
+            foreach ($transactions as $transaction) {
+                $transaction = isset($transaction->attachments[0]) ? $transaction->attachments[0] : [];
+                if (!empty($transaction)) {
+                    $xml = $this->getAttachments($session, $transaction);
+                    if (!is_null($xml)) array_push($files, $xml);
+                }
+            }
+            return $files;
+
+        } catch (Exception $e) {
+            //TODO Log Exception
+            var_dump($e);
+        }
+    }
+
+    /**
+     * @param $session
+     * @param $attachment
+     * @return null|string
+     */
+    protected function getAttachments($session, $attachment)
+    {
+        if ($attachment['id_attachment_type'] != static::XML_ATTACHMENT_TYPE) {
+            return null;
+        }
+        $idAttachment = substr($attachment['url'], 1, strlen($attachment['url']));
+        $xml = Attachment::get($session, null, $idAttachment);
+        $file = $this->getSavePath() . '/' . $attachment['file'];
+        $xmlFile = fopen($file, 'w');
+        fwrite($xmlFile, $xml);
+        fclose($xmlFile);
+        return $file;
     }
 }

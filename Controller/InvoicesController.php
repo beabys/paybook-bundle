@@ -80,12 +80,11 @@ class InvoicesController extends Controller
      */
     protected function getAttachments($session, $attachment)
     {
-        if ($attachment['id_attachment_type'] != static::XML_ATTACHMENT_TYPE) {
-            return null;
-        }
+        if ($attachment['id_attachment_type'] != static::XML_ATTACHMENT_TYPE) return null;
         $idAttachment = substr($attachment['url'], 1, strlen($attachment['url']));
         $xml = Attachment::get($session, null, $idAttachment);
         $file = $this->getSavePath() . '/' . $attachment['file'];
+        if (file_exists($file)) return null;
         $xmlFile = fopen($file, 'w');
         fwrite($xmlFile, $xml);
         fclose($xmlFile);

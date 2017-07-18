@@ -28,9 +28,10 @@ class InvoicesController extends Controller
      * @param null $startDate
      * @param null $endDate
      * @param array $keywords
-     * @return array|bool
+     * @param null $limit
+     * @return array
      */
-    public function getUsersInvoice($email, $startDate = null, $endDate = null, $keywords = [])
+    public function getUsersInvoice($email, $startDate = null, $endDate = null, $keywords = [], $limit = null)
     {
 
         $files = [];
@@ -47,10 +48,15 @@ class InvoicesController extends Controller
         $session = new Session($user);
         date_default_timezone_set('America/Mexico_City');
         $options = [
-            'limit' => 3,
+            //'limit' => 3,
             'dt_transaction_from' => strtotime($startDate),
             'dt_transaction_to' => strtotime($endDate),
         ];
+
+        if (!is_null($limit)) {
+            $options['limit'] = $limit;
+        }
+
         if (!empty($keywords)) {
             $keywords = implode(',', $keywords);
             $options['keywords'] = $keywords;

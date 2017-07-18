@@ -42,17 +42,9 @@ class UserController extends Controller
 
         $this->syncRetry = $syncRetry;
         Paybook::init($this->getApiKey());
-        //Create instance of existing user
-        $myUsers = User::get();
-        $user = null;
-        foreach ($myUsers as $myUser) {
-            if ($myUser->name == $userName) {
-                $user = $myUser;
-            }
-        }
-        if ($user == null) {
-            $user = new User($userName);
-        }
+        //Create instance of existing user or new user
+        $user = $this->getUserAccount($userName);
+        //create session of user
         $this->setSession($user);
         $sites = $this->getSites();
         $satSite = null;
@@ -114,6 +106,30 @@ class UserController extends Controller
         $this->satCredentials = $satCredentials;
 
         return $this;
+    }
+
+    /**
+     * @param $userName
+     * @return User
+     */
+    protected function getUserAccount($userName)
+    {
+        $users = User::get();
+        foreach ($users as $user) {
+            if ($user->name == $userName) {
+                return $user;
+            }
+        }
+        return $this->setUserAccount($userName);
+    }
+
+    /**
+     * @param $userName
+     * @return User
+     */
+    protected function setUserAccount($userName)
+    {
+        return new User($userName);
     }
 
     /**
